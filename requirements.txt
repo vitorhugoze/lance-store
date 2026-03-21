@@ -1,4 +1,3 @@
-argparse
 pylance
 pandas
 duckdb
