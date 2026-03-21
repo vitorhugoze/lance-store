@@ -10,9 +10,6 @@ A persistent data store using the Lance columnar format for fast ML data access.
 ## Quick Start
 
 ```bash
-# Set data path (persist this in your OpenClaw config)
-export LANCE_DATA_PATH=/path/to/data
-
 # Create a dataset
 python3 scripts/command.py create-dataset <name> <field1> <field2> ...
 
@@ -25,10 +22,10 @@ python3 scripts/command.py list-datasets-info
 
 ## Configuration
 
-**Environment Variable:** `LANCE_DATA_PATH`
+**Environment Variable:** `LANCE_DATA_PATH` (optional)
 
-- Default: `.` (current directory)
-- Set before running any command
+- **Default:** `.` (current directory) — no need to set this unless you want data in a specific location
+- If set, data will be stored at the specified path
 - Persist in OpenClaw config: `openclaw config set 'env.LANCE_DATA_PATH' "/custom/path"`
 
 ## Critical Behavior: Data Type Strictness
@@ -228,9 +225,7 @@ Lance infers types from the first record:
 
 1. **Initialize at session start:** Run `list-datasets-info` to understand what data already exists
 2. **Plan your schema:** First record determines types for the entire dataset
-3. **Use batch append for related data:** Ensures consistent types across records
-4. **Backup before major operations:** Use `backup-dataset` for safety
-5. **Store metadata separately:** Consider a separate dataset for schema documentation if types aren't obvious from context
+3. **Use batch append when adding multiple records:** More efficient than individual appends
 
 ## Requirements
 
