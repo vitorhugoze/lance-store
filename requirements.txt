@@ -1,4 +1,4 @@
 argparse
-lancedb
+pylance
 pandas
 duckdb
