@@ -56,6 +56,8 @@ def backup_dataset(dataset_name, backup_path):
 def list_datasets():
     try:
         metadata_path = os.path.join(get_data_path(), "metadata.lance")
+        if not os.path.exists(metadata_path):
+            return create_response("list_datasets", "success", [], None)
         metadata_ds = lance.dataset(metadata_path)
         metadata_df = metadata_ds.to_table().to_pandas()
         datasets = metadata_df['dataset_name'].unique().tolist()
