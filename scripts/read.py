@@ -1,6 +1,6 @@
 import duckdb
 import os
-from manage import get_data_path, get_dataset_path, create_response
+from manage import get_dataset_path, create_response, check_dataset_exists
 
 # Install and load the Lance extension for DuckDB
 duckdb.execute("INSTALL lance FROM community;")
@@ -9,8 +9,14 @@ duckdb.execute("LOAD lance;")
 def read_dataset(dataset_name):
     try:
         dataset_path = get_dataset_path(dataset_name)
+
+        #Check if dataset exists on metadata, if not raises an error
+        check_dataset_exists(dataset_name)
+
+        #If exists on metadata but not on disk, return empty list
         if not os.path.exists(dataset_path):
             return create_response("read_dataset", "success", [], None)
+        
         df = duckdb.query(f"SELECT * FROM __lance_scan('{dataset_path}')").to_df()
         # Convert datetime columns to ISO strings for JSON serialization
         for col in df.select_dtypes(include=['datetime64', 'datetime64[ns]']).columns:
@@ -23,7 +29,10 @@ def read_dataset(dataset_name):
 def query_dataset(dataset_name, sql_query):
     try:
         dataset_path = get_dataset_path(dataset_name)
-        # Replace {dataset} placeholder with __lance_scan call
+
+        #Check if dataset exists on metadata, if not raises an error
+        check_dataset_exists(dataset_name)
+        
         sql_query = sql_query.replace("{dataset}", f"__lance_scan('{dataset_path}')")
         df = duckdb.query(sql_query).to_df()
         # Convert datetime columns to ISO strings for JSON serialization
@@ -37,8 +46,13 @@ def query_dataset(dataset_name, sql_query):
 def get_record(dataset_name, record_id):
     try:
         dataset_path = get_dataset_path(dataset_name)
+
+        #Check if dataset exists on metadata, if not raises an error
+        check_dataset_exists(dataset_name)
+
+        #Returns the same error as if the record is not found
         if not os.path.exists(dataset_path):
-            return create_response("get_record", "error", None, f"Dataset '{dataset_name}' not found")
+            return create_response("get_record", "error", None, f"Record with ID '{record_id}' not found")
         df = duckdb.query(f"SELECT * FROM __lance_scan('{dataset_path}') WHERE id = '{record_id}'").to_df()
         if df.empty:
             return create_response("get_record", "error", None, f"Record with ID '{record_id}' not found")
@@ -53,6 +67,11 @@ def get_record(dataset_name, record_id):
 def list_records(dataset_name, limit=100, offset=0, filters=None):
     try:
         dataset_path = get_dataset_path(dataset_name)
+
+        #Check if dataset exists on metadata, if not raises an error
+        check_dataset_exists(dataset_name)
+
+        #If exists on metadata but not on disk, return empty list
         if not os.path.exists(dataset_path):
             return create_response("list_records", "success", {"records": [], "total": 0}, None)
         query = f"SELECT * FROM __lance_scan('{dataset_path}')"
@@ -74,6 +93,11 @@ def list_records(dataset_name, limit=100, offset=0, filters=None):
 def count_records(dataset_name, filters=None):
     try:
         dataset_path = get_dataset_path(dataset_name)
+
+        #Check if dataset exists on metadata, if not raises an error
+        check_dataset_exists(dataset_name)
+
+        #If exists on metadata but not on disk, return count as 0
         if not os.path.exists(dataset_path):
             return create_response("count_records", "success", 0, None)
         query = f"SELECT COUNT(*) as count FROM __lance_scan('{dataset_path}')"
