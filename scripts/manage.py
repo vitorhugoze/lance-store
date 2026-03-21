@@ -34,6 +34,20 @@ def check_dataset_exists(dataset_name):
     except Exception as e:
         raise ValueError(f"Error checking dataset metadata: {str(e)}")
 
+def check_dataset_file_exists(dataset_name):
+    """Check if dataset exists in metadata AND the physical dataset file exists on disk.
+    Returns an error response dict if dataset is in metadata but file is missing.
+    Returns None if dataset file exists and is readable."""
+    check_dataset_exists(dataset_name)
+    dataset_path = get_dataset_path(dataset_name)
+    if not os.path.exists(dataset_path):
+        return create_response(
+            "read_dataset", "error", None,
+            f"Dataset '{dataset_name}' is registered in metadata but the dataset file is missing at '{dataset_path}'. "
+            "This may indicate a corrupted state or the data was deleted externally."
+        )
+    return None
+
 def backup_dataset(dataset_name, backup_path):
     try:
         check_dataset_exists(dataset_name)

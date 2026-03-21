@@ -1,6 +1,6 @@
 import duckdb
 import os
-from manage import get_data_path, get_dataset_path, create_response
+from manage import get_dataset_path, check_dataset_file_exists, create_response
 
 # Install and load the Lance extension for DuckDB
 duckdb.execute("INSTALL lance FROM community;")
@@ -8,9 +8,10 @@ duckdb.execute("LOAD lance;")
 
 def read_dataset(dataset_name):
     try:
+        error_resp = check_dataset_file_exists(dataset_name)
+        if error_resp:
+            return error_resp
         dataset_path = get_dataset_path(dataset_name)
-        if not os.path.exists(dataset_path):
-            return create_response("read_dataset", "success", [], None)
         df = duckdb.query(f"SELECT * FROM __lance_scan('{dataset_path}')").to_df()
         # Convert datetime columns to ISO strings for JSON serialization
         for col in df.select_dtypes(include=['datetime64', 'datetime64[ns]']).columns:
@@ -22,6 +23,9 @@ def read_dataset(dataset_name):
 
 def query_dataset(dataset_name, sql_query):
     try:
+        error_resp = check_dataset_file_exists(dataset_name)
+        if error_resp:
+            return error_resp
         dataset_path = get_dataset_path(dataset_name)
         # Replace {dataset} placeholder with __lance_scan call
         sql_query = sql_query.replace("{dataset}", f"__lance_scan('{dataset_path}')")
@@ -36,9 +40,10 @@ def query_dataset(dataset_name, sql_query):
 
 def get_record(dataset_name, record_id):
     try:
+        error_resp = check_dataset_file_exists(dataset_name)
+        if error_resp:
+            return error_resp
         dataset_path = get_dataset_path(dataset_name)
-        if not os.path.exists(dataset_path):
-            return create_response("get_record", "error", None, f"Dataset '{dataset_name}' not found")
         df = duckdb.query(f"SELECT * FROM __lance_scan('{dataset_path}') WHERE id = '{record_id}'").to_df()
         if df.empty:
             return create_response("get_record", "error", None, f"Record with ID '{record_id}' not found")
@@ -52,9 +57,10 @@ def get_record(dataset_name, record_id):
 
 def list_records(dataset_name, limit=100, offset=0, filters=None):
     try:
+        error_resp = check_dataset_file_exists(dataset_name)
+        if error_resp:
+            return error_resp
         dataset_path = get_dataset_path(dataset_name)
-        if not os.path.exists(dataset_path):
-            return create_response("list_records", "success", {"records": [], "total": 0}, None)
         query = f"SELECT * FROM __lance_scan('{dataset_path}')"
         if filters:
             query += f" {filters}"
@@ -73,9 +79,10 @@ def list_records(dataset_name, limit=100, offset=0, filters=None):
 
 def count_records(dataset_name, filters=None):
     try:
+        error_resp = check_dataset_file_exists(dataset_name)
+        if error_resp:
+            return error_resp
         dataset_path = get_dataset_path(dataset_name)
-        if not os.path.exists(dataset_path):
-            return create_response("count_records", "success", 0, None)
         query = f"SELECT COUNT(*) as count FROM __lance_scan('{dataset_path}')"
         if filters:
             query += f" {filters}"
