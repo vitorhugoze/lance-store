@@ -1,7 +1,7 @@
 ---
 name: lance-store
 version: 1.0.6
-description: "Persist and retrieve structured data using the Lance columnar format. Use when you need to store, query, or analyze data across sessions — such as saving skill outputs, tracking conversation context, storing research data, or building knowledge bases. Configure via LANCE_DATA_PATH environment variable to set the data storage location. Triggers on: 'store this data', 'save to lance', 'persist information', 'remember this', 'store for later', 'query my data', 'analyze stored data', 'lance store'."
+description: "Persist and retrieve structured data using the Lance columnar format. Use when you need to store, query, or analyze data across sessions — such as saving skill outputs, tracking conversation context, storing research data, or building knowledge bases. Afther installing the requirements it's ready to use. Triggers on: 'store this data', 'save to lance', 'persist information', 'remember this', 'store for later', 'query my data', 'analyze stored data', 'lance store'."
 author: Vitor Hugo Zeferino
 ---
 
@@ -10,7 +10,7 @@ author: Vitor Hugo Zeferino
 ## Installation
 
 ```bash
-npx clawhub install lance-store
+python3 -m pip install -r requirements.txt
 ```
 
 A persistent data store using the Lance columnar format for fast ML data access.
@@ -29,20 +29,13 @@ python3 scripts/command.py append-to-dataset <name> <value1> <value2> ...
 
 # Read all records from a dataset
 python3 scripts/command.py read-dataset <name>
-
-# Query data with SQL (DuckDB)
-python3 scripts/command.py query-dataset <name> "SELECT * FROM {dataset} WHERE field = 'value'"
 ```
 
-**Note:** `list-datasets-info` shows dataset metadata (schema, field types, record count) — it does not return the actual data rows. Use `read-dataset` or `query-dataset` to retrieve records.
+**Note:** `list-datasets-info` shows dataset metadata (schema, field types, record count) — it does not return the actual data rows. Use `read-dataset` to retrieve records.
 
-## Configuration
+## Storage Location
 
-**Environment Variable:** `LANCE_DATA_PATH` (optional)
-
-- **Default:** `.` (current directory) — no need to set this unless you want data in a specific location
-- If set, data will be stored at the specified path
-- Persist in OpenClaw config: `openclaw config set 'env.LANCE_DATA_PATH' "/custom/path"`
+DataSets are created and stored on the current path '.'
 
 ## Critical Behavior: Data Type Strictness
 
@@ -203,16 +196,10 @@ python3 scripts/command.py count-records <name>
 
 ### Read All Records
 
-```bash
-python3 scripts/command.py read-dataset <name>
-```
-
 Returns all records from the dataset as a list of objects.
 
-### Query Data with SQL
-
 ```bash
-python3 scripts/command.py query-dataset <name> "<sql-query>"
+python3 scripts/command.py read-dataset <name>
 ```
 
 ### Drop Dataset
@@ -223,33 +210,6 @@ Delete the entire dataset and its metadata.
 
 ```bash
 python3 scripts/command.py drop-dataset <name>
-```
-
-Uses DuckDB's Lance extension to run SQL queries on your dataset. Use `{dataset}` as a placeholder in your query — it will be automatically replaced with the correct `__lance_scan()` call.
-
-**Examples:**
-
-```bash
-# Filter records
-python3 scripts/command.py query-dataset users "SELECT * FROM {dataset} WHERE age > 30"
-
-# Select specific columns
-python3 scripts/command.py query-dataset products "SELECT name, price FROM {dataset} WHERE price < 100"
-
-# Aggregate and group
-python3 scripts/command.py query-dataset sales "SELECT category, COUNT(*) as total FROM {dataset} GROUP BY category ORDER BY total DESC"
-
-# Text search (substring match)
-python3 scripts/command.py query-dataset notes "SELECT * FROM {dataset} WHERE title LIKE '%meeting%'"
-
-# Multiple filters
-python3 scripts/command.py query-dataset employees "SELECT name, department FROM {dataset} WHERE department = 'Engineering' AND level > 2"
-
-# Limit and offset (pagination)
-python3 scripts/command.py query-dataset logs "SELECT * FROM {dataset} ORDER BY updated_at DESC LIMIT 20 OFFSET 40"
-
-# Null checks
-python3 scripts/command.py query-dataset users "SELECT * FROM {dataset} WHERE phone IS NOT NULL"
 ```
 
 **Internal fields available in every dataset:**

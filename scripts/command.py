@@ -61,11 +61,6 @@ def main():
     read_parser = subparsers.add_parser('read-dataset', help='Read all records from a dataset')
     read_parser.add_argument('dataset_name', help='Name of the dataset')
 
-    # query-dataset
-    query_parser = subparsers.add_parser('query-dataset', help='Execute a SQL query on a dataset')
-    query_parser.add_argument('dataset_name', help='Name of the dataset')
-    query_parser.add_argument('sql_query', help='SQL query string')
-
     # get-record
     record_parser = subparsers.add_parser('get-record', help='Get a specific record by ID')
     record_parser.add_argument('dataset_name', help='Name of the dataset')
@@ -94,7 +89,6 @@ def main():
     elif args.command == 'delete-dataset-record':
         response = delete_dataset_record(args.dataset_name, args.record_id)
     elif args.command == 'batch-append-to-dataset':
-        # Assume batch_data is a JSON string of list of lists
         batch_data = json.loads(args.batch_data)
         response = batch_append_to_dataset(args.dataset_name, batch_data)
     elif args.command == 'backup-dataset':
@@ -111,8 +105,6 @@ def main():
         response = drop_dataset(args.dataset_name)
     elif args.command == 'read-dataset':
         response = read_dataset(args.dataset_name)
-    elif args.command == 'query-dataset':
-        response = query_dataset(args.dataset_name, args.sql_query)
     elif args.command == 'get-record':
         response = get_record(args.dataset_name, args.record_id)
     elif args.command == 'list-records':

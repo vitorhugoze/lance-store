@@ -4,7 +4,7 @@ import shutil
 import json
 
 def get_data_path():
-    return os.path.realpath(os.getenv('LANCE_DATA_PATH', '.'))
+    return os.path.realpath('.')
 
 def create_response(operation, status, data=None, error=None):
     response = {
