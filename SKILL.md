@@ -16,9 +16,17 @@ python3 scripts/command.py create-dataset <name> <field1> <field2> ...
 # Append data
 python3 scripts/command.py append-to-dataset <name> <value1> <value2> ...
 
-# Read data
+# Read all records from a dataset
+python3 scripts/command.py read-dataset <name>
+
+# Query data with SQL (DuckDB)
+python3 scripts/command.py query-dataset <name> "SELECT * FROM {dataset} WHERE field = 'value'"
+
+# List all datasets and their metadata
 python3 scripts/command.py list-datasets-info
 ```
+
+**Note:** `list-datasets-info` shows dataset metadata (schema, field types, record count) — it does not return the actual data rows. Use `read-dataset` or `query-dataset` to retrieve records.
 
 ## Configuration
 
@@ -184,6 +192,78 @@ python3 scripts/command.py backup-dataset <name> <backup_path>
 ```bash
 python3 scripts/command.py count-records <name>
 ```
+
+### Read All Records
+
+```bash
+python3 scripts/command.py read-dataset <name>
+```
+
+Returns all records from the dataset as a list of objects.
+
+### Query Data with SQL
+
+```bash
+python3 scripts/command.py query-dataset <name> "<sql-query>"
+```
+
+Uses DuckDB's Lance extension to run SQL queries on your dataset. Use `{dataset}` as a placeholder in your query — it will be automatically replaced with the correct `__lance_scan()` call.
+
+**Examples:**
+
+```bash
+# Filter records
+python3 scripts/command.py query-dataset users "SELECT * FROM {dataset} WHERE age > 30"
+
+# Select specific columns
+python3 scripts/command.py query-dataset products "SELECT name, price FROM {dataset} WHERE price < 100"
+
+# Aggregate and group
+python3 scripts/command.py query-dataset sales "SELECT category, COUNT(*) as total FROM {dataset} GROUP BY category ORDER BY total DESC"
+
+# Text search (substring match)
+python3 scripts/command.py query-dataset notes "SELECT * FROM {dataset} WHERE title LIKE '%meeting%'"
+
+# Multiple filters
+python3 scripts/command.py query-dataset employees "SELECT name, department FROM {dataset} WHERE department = 'Engineering' AND level > 2"
+
+# Limit and offset (pagination)
+python3 scripts/command.py query-dataset logs "SELECT * FROM {dataset} ORDER BY updated_at DESC LIMIT 20 OFFSET 40"
+
+# Null checks
+python3 scripts/command.py query-dataset users "SELECT * FROM {dataset} WHERE phone IS NOT NULL"
+```
+
+**Internal fields available in every dataset:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | string | UUID — unique record identifier |
+| `updated_at` | timestamp | When the record was last inserted or updated |
+
+### List Records (Paginated)
+
+```bash
+python3 scripts/command.py list-records <name> --limit 10 --offset 0
+```
+
+Returns records with optional pagination. Supports `--filters` for SQL WHERE clauses.
+
+### Get Single Record
+
+```bash
+python3 scripts/command.py get-record <name> <record_id>
+```
+
+Retrieves a specific record by its UUID.
+
+### Get Dataset Info
+
+```bash
+python3 scripts/command.py get-dataset-info <name>
+```
+
+Returns schema, field types (if data exists), and record count.
 
 ## Response Format
 
