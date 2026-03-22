@@ -10,6 +10,9 @@ A persistent data store using the Lance columnar format for fast ML data access.
 ## Quick Start
 
 ```bash
+# List all datasets and their metadata
+python3 scripts/command.py list-datasets-info
+
 # Create a dataset
 python3 scripts/command.py create-dataset <name> <field1> <field2> ...
 
@@ -21,9 +24,6 @@ python3 scripts/command.py read-dataset <name>
 
 # Query data with SQL (DuckDB)
 python3 scripts/command.py query-dataset <name> "SELECT * FROM {dataset} WHERE field = 'value'"
-
-# List all datasets and their metadata
-python3 scripts/command.py list-datasets-info
 ```
 
 **Note:** `list-datasets-info` shows dataset metadata (schema, field types, record count) — it does not return the actual data rows. Use `read-dataset` or `query-dataset` to retrieve records.
@@ -236,9 +236,9 @@ python3 scripts/command.py query-dataset users "SELECT * FROM {dataset} WHERE ph
 
 **Internal fields available in every dataset:**
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `id` | string | UUID — unique record identifier |
+| Field        | Type      | Description                                  |
+| ------------ | --------- | -------------------------------------------- |
+| `id`         | string    | UUID — unique record identifier              |
 | `updated_at` | timestamp | When the record was last inserted or updated |
 
 ### List Records (Paginated)
