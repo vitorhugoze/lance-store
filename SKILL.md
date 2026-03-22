@@ -1,9 +1,17 @@
 ---
 name: lance-store
+version: 1.0.4
 description: "Persist and retrieve structured data using the Lance columnar format. Use when you need to store, query, or analyze data across sessions — such as saving skill outputs, tracking conversation context, storing research data, or building knowledge bases. Configure via LANCE_DATA_PATH environment variable to set the data storage location. Triggers on: 'store this data', 'save to lance', 'persist information', 'remember this', 'store for later', 'query my data', 'analyze stored data', 'lance store'."
+author: Vitor Hugo Zeferino
 ---
 
 # Lance Store
+
+## Installation
+
+```bash
+npx molthub install lance-store
+```
 
 A persistent data store using the Lance columnar format for fast ML data access.
 
