@@ -74,7 +74,7 @@ def update_dataset_record(dataset_name, record_id, updated_data):
         df = ds.to_table().to_pandas()
 
         # Find the record to update
-        record_index = df[df['id'] == record_id].index
+        record_index = df[df['_id'] == record_id].index
         if len(record_index) == 0:
             raise ValueError(f"Record with ID {record_id} not found in dataset {dataset_name}")
 
@@ -99,7 +99,7 @@ def delete_dataset_record(dataset_name, record_id):
         df = ds.to_table().to_pandas()
 
         # Find the record to delete
-        record_index = df[df['id'] == record_id].index
+        record_index = df[df['_id'] == record_id].index
         if len(record_index) == 0:
             raise ValueError(f"Record with ID {record_id} not found in dataset {dataset_name}")
 

@@ -32,6 +32,10 @@ def query_dataset(dataset_name, sql_query):
 
         #Check if dataset exists on metadata, if not raises an error
         check_dataset_exists(dataset_name)
+
+        #If exists on metadata but not on disk, return empty list
+        if not os.path.exists(dataset_path):
+            return create_response("query_dataset", "error", None, "Dataset file not found for query execution")
         
         sql_query = sql_query.replace("{dataset}", f"__lance_scan('{dataset_path}')")
         df = duckdb.query(sql_query).to_df()
