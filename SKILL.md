@@ -10,7 +10,7 @@ author: Vitor Hugo Zeferino
 ## Installation
 
 ```bash
-npx molthub install lance-store
+npx clawhub install lance-store
 ```
 
 A persistent data store using the Lance columnar format for fast ML data access.
