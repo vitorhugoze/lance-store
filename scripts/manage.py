@@ -68,6 +68,29 @@ def list_datasets():
 def get_dataset_path(dataset_name):
     return os.path.join(get_data_path(), dataset_name)
 
+def drop_dataset(dataset_name):
+    try:
+        # Ensure dataset exists in metadata first
+        check_dataset_exists(dataset_name)
+
+        # Delete dataset folder if exists
+        dataset_path = get_dataset_path(dataset_name)
+        if os.path.exists(dataset_path):
+            shutil.rmtree(dataset_path)
+
+        # Update metadata: remove matching rows and overwrite dataset
+        metadata_path = os.path.join(get_data_path(), "metadata.lance")
+        metadata_ds = lance.dataset(metadata_path)
+        metadata_df = metadata_ds.to_table().to_pandas()
+        remaining = metadata_df[metadata_df['dataset_name'] != dataset_name]
+
+        lance.write_dataset(remaining, metadata_path, mode="overwrite")
+
+        return create_response("drop_dataset", "success", None, None)
+    except Exception as e:
+        return create_response("drop_dataset", "error", None, str(e))
+
+
 def get_dataset_info(dataset_name):
     try:
         fields = check_dataset_exists(dataset_name)

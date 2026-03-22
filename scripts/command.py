@@ -53,6 +53,10 @@ def main():
     path_parser = subparsers.add_parser('get-dataset-path-info', help='Get path information for a dataset')
     path_parser.add_argument('dataset_name', help='Name of the dataset')
 
+    # drop-dataset
+    drop_parser = subparsers.add_parser('drop-dataset', help='Delete a dataset and its metadata entry')
+    drop_parser.add_argument('dataset_name', help='Name of the dataset')
+
     # read-dataset
     read_parser = subparsers.add_parser('read-dataset', help='Read all records from a dataset')
     read_parser.add_argument('dataset_name', help='Name of the dataset')
@@ -103,6 +107,8 @@ def main():
         response = list_datasets_info()
     elif args.command == 'get-dataset-path-info':
         response = get_dataset_path_info(args.dataset_name)
+    elif args.command == 'drop-dataset':
+        response = drop_dataset(args.dataset_name)
     elif args.command == 'read-dataset':
         response = read_dataset(args.dataset_name)
     elif args.command == 'query-dataset':
