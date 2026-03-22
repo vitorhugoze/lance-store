@@ -207,6 +207,16 @@ Returns all records from the dataset as a list of objects.
 python3 scripts/command.py query-dataset <name> "<sql-query>"
 ```
 
+### Drop Dataset
+
+# Requires confirmation if have not created a backup beforehand.
+
+Delete the entire dataset and its metadata.
+
+```bash
+python3 scripts/command.py drop-dataset <name>
+```
+
 Uses DuckDB's Lance extension to run SQL queries on your dataset. Use `{dataset}` as a placeholder in your query — it will be automatically replaced with the correct `__lance_scan()` call.
 
 **Examples:**
@@ -236,10 +246,10 @@ python3 scripts/command.py query-dataset users "SELECT * FROM {dataset} WHERE ph
 
 **Internal fields available in every dataset:**
 
-| Field        | Type      | Description                                  |
-| ------------ | --------- | -------------------------------------------- |
-| `id`         | string    | UUID — unique record identifier              |
-| `updated_at` | timestamp | When the record was last inserted or updated |
+| Field         | Type      | Description                                  |
+| ------------- | --------- | -------------------------------------------- |
+| `_id`         | string    | UUID — unique record identifier              |
+| `_updated_at` | timestamp | When the record was last inserted or updated |
 
 ### List Records (Paginated)
 
