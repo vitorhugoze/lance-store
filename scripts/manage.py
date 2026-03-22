@@ -81,11 +81,11 @@ def get_dataset_info(dataset_name):
             columns = df.columns.tolist()
             schema = ds.schema
             field_types = {field.name: str(field.type) for field in schema}
-            last_updated = df['updated_at'].max().isoformat() if 'updated_at' in df.columns and len(df) > 0 else None
+            last_updated = df['_updated_at'].max().isoformat() if '_updated_at' in df.columns and len(df) > 0 else None
         except Exception:
             # Dataset file doesn't exist, return metadata info
             record_count = 0
-            columns = ['id', 'updated_at'] + fields
+            columns = ['_id', '_updated_at'] + fields
             field_types = {}
             last_updated = None
 

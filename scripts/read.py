@@ -53,7 +53,7 @@ def get_record(dataset_name, record_id):
         #Returns the same error as if the record is not found
         if not os.path.exists(dataset_path):
             return create_response("get_record", "error", None, f"Record with ID '{record_id}' not found")
-        df = duckdb.query(f"SELECT * FROM __lance_scan('{dataset_path}') WHERE id = '{record_id}'").to_df()
+        df = duckdb.query(f"SELECT * FROM __lance_scan('{dataset_path}') WHERE _id = '{record_id}'").to_df()
         if df.empty:
             return create_response("get_record", "error", None, f"Record with ID '{record_id}' not found")
         # Convert datetime columns to ISO strings for JSON serialization

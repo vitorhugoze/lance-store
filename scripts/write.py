@@ -9,10 +9,10 @@ from manage import get_data_path, create_response
 def create_dataset(dataset_name, fields):
     try:
         df = pd.DataFrame({
-            "id": [uuid.uuid4().__str__()],
+            "_id": [uuid.uuid4().__str__()],
             "dataset_name": [dataset_name],
             "fields": [json.dumps(fields)],
-            "created_at": [datetime.now()]
+            "_created_at": [datetime.now()]
         })
 
         metadata_path = os.path.join(get_data_path(), "metadata.lance")
@@ -47,10 +47,10 @@ def append_to_dataset(new_data, dataset_name):
         fields = check_dataset_exists(dataset_name)
         validate_field_count(fields, new_data)
 
-        # Create a dictionary with id, updated_at, and the field data
+        # Create a dictionary with _id, _updated_at, and the field data
         data_dict = {
-            "id": uuid.uuid4().__str__(),
-            "updated_at": datetime.now()
+            "_id": uuid.uuid4().__str__(),
+            "_updated_at": datetime.now()
         }
         for field, value in zip(fields, new_data):
             data_dict[field] = value
@@ -81,7 +81,7 @@ def update_dataset_record(dataset_name, record_id, updated_data):
         # Update the record
         for field, value in zip(fields, updated_data):
             df.at[record_index[0], field] = value
-        df.at[record_index[0], 'updated_at'] = datetime.now()
+        df.at[record_index[0], '_updated_at'] = datetime.now()
 
         # Write back the updated dataset
         lance.write_dataset(df, dataset_path, mode="overwrite")
@@ -124,8 +124,8 @@ def batch_append_to_dataset(dataset_name, batch_data):
         records = []
         for data in batch_data:
             data_dict = {
-                "id": uuid.uuid4().__str__(),
-                "updated_at": datetime.now()
+                "_id": uuid.uuid4().__str__(),
+                "_updated_at": datetime.now()
             }
             for field, value in zip(fields, data):
                 data_dict[field] = value

@@ -81,14 +81,14 @@ Example output:
             "path": "/data/users",
             "fields": ["name", "age", "email"],
             "field_types": {
-                "id": "large_string",
-                "updated_at": "timestamp[us]",
+                "_id": "large_string",
+                "_updated_at": "timestamp[us]",
                 "name": "large_string",
                 "age": "large_string",
                 "email": "large_string"
             },
             "record_count": 2,
-            "columns": ["id", "updated_at", "name", "age", "email"],
+            "columns": ["id", "_updated_at", "name", "age", "email"],
             "last_updated": "2026-03-21T17:57:44.595628"
         }
     ],
@@ -203,8 +203,8 @@ All commands return JSON:
 
 Every dataset automatically includes:
 
-- `id` — UUID for each record
-- `updated_at` — timestamp of last insert/update
+- `_id` — UUID for each record
+- `_updated_at` — timestamp of last insert/update
 
 These are managed automatically — when appending, only provide your defined fields.
 
