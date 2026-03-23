@@ -17,7 +17,52 @@ def create_response(operation, status, data=None, error=None):
 
     return json.dumps(response)
 
+def validate_dataset_name(dataset_name):
+    """Validate dataset name to prevent path traversal attacks.
+
+    Rejects names containing path separators, parent-directory references,
+    or absolute paths. This ensures dataset paths stay within the data directory.
+    """
+    if not dataset_name or not isinstance(dataset_name, str):
+        raise ValueError("Dataset name must be a non-empty string")
+
+    # Reject names with path separators
+    if '/' in dataset_name or '\\' in dataset_name:
+        raise ValueError(f"Dataset name '{dataset_name}' contains invalid path characters")
+
+    # Reject parent-directory traversal
+    if '..' in dataset_name:
+        raise ValueError(f"Dataset name '{dataset_name}' must not contain '..'")
+
+    # Reject names that resolve to a parent or absolute path
+    resolved = os.path.realpath(os.path.join(get_data_path(), dataset_name))
+    data_path = get_data_path()
+    if not resolved.startswith(data_path + os.sep) and resolved != data_path:
+        raise ValueError(f"Dataset name '{dataset_name}' escapes the data directory")
+
+    return True
+
+def validate_backup_path(backup_path):
+    """Validate backup path to prevent path traversal attacks.
+
+    Rejects absolute paths and parent-directory references to ensure backups
+    stay within the intended relative location.
+    """
+    if not backup_path or not isinstance(backup_path, str):
+        raise ValueError("Backup path must be a non-empty string")
+
+    # Reject absolute paths
+    if os.path.isabs(backup_path):
+        raise ValueError(f"Backup path '{backup_path}' must be a relative path, not absolute")
+
+    # Reject parent-directory traversal
+    if '..' in backup_path:
+        raise ValueError(f"Backup path '{backup_path}' must not contain '..'")
+
+    return True
+
 def check_dataset_exists(dataset_name):
+    validate_dataset_name(dataset_name)
     try:
         metadata_path = os.path.join(get_data_path(), "metadata.lance")
         metadata_ds = lance.dataset(metadata_path)
@@ -36,6 +81,8 @@ def check_dataset_exists(dataset_name):
 
 def backup_dataset(dataset_name, backup_path):
     try:
+        validate_dataset_name(dataset_name)
+        validate_backup_path(backup_path)
         check_dataset_exists(dataset_name)
 
         # Ensure backup directory exists
@@ -66,10 +113,12 @@ def list_datasets():
         return create_response("list_datasets", "error", None, str(e))
 
 def get_dataset_path(dataset_name):
+    validate_dataset_name(dataset_name)
     return os.path.join(get_data_path(), dataset_name)
 
 def drop_dataset(dataset_name):
     try:
+        validate_dataset_name(dataset_name)
         # Ensure dataset exists in metadata first
         check_dataset_exists(dataset_name)
 
