@@ -1,6 +1,6 @@
 ---
 name: lance-store
-version: 1.0.8
+version: 1.0.9
 description: "Persist and retrieve structured data using the Lance columnar format. Use when you need to store, query, or analyze data across sessions — such as saving skill outputs, tracking conversation context, storing research data, or building knowledge bases. Afther installing the requirements it's ready to use. Triggers on: 'store this data', 'save to lance', 'persist information', 'remember this', 'store for later', 'query my data', 'analyze stored data', 'lance store'."
 author: Vitor Hugo Zeferino
 ---
@@ -297,6 +297,6 @@ Required packages:
 
 - **`pylance`** — The [Lance columnar format](https://github.com/lance-format/lance) library.
 
-  ⚠️ **Naming note:** Despite the PyPI package being named `pylance`, the library is imported as `import lance` in Python code. This is the official Lance project naming convention — it is **NOT** the VS Code "pylance" language server. See [lance.org](https://lance.org) for details.
+    ⚠️ **Naming note:** Despite the PyPI package being named `pylance`, the library is imported as `import lance` in Python code. This is the official Lance project naming convention — it is **NOT** the VS Code "pylance" language server. See [lance.org](https://lance.org) for details.
 
 - **`pandas`** — Data manipulation
