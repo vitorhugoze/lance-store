@@ -1,6 +1,6 @@
 ---
 name: lance-store
-version: 1.0.7
+version: 1.0.8
 description: "Persist and retrieve structured data using the Lance columnar format. Use when you need to store, query, or analyze data across sessions — such as saving skill outputs, tracking conversation context, storing research data, or building knowledge bases. Afther installing the requirements it's ready to use. Triggers on: 'store this data', 'save to lance', 'persist information', 'remember this', 'store for later', 'query my data', 'analyze stored data', 'lance store'."
 author: Vitor Hugo Zeferino
 ---
