@@ -225,7 +225,7 @@ python3 scripts/command.py drop-dataset <name>
 python3 scripts/command.py list-records <name> --limit 10 --offset 0
 ```
 
-Returns records with optional pagination. Supports `--filters` for SQL WHERE clauses.
+Returns records with optional pagination.
 
 ### Get Single Record
 
@@ -290,12 +290,10 @@ Lance infers types from the first record:
 Install dependencies:
 
 ```bash
-pip install -r requirements.txt
+python3 -m pip install -r requirements.txt
 ```
 
 Required packages:
 
 - `pylance` — Lance columnar format
 - `pandas` — Data manipulation
-- `duckdb` — SQL queries on Lance data
-- `argparse` — CLI (stdlib)

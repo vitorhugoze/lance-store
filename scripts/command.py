@@ -71,12 +71,10 @@ def main():
     list_parser.add_argument('dataset_name', help='Name of the dataset')
     list_parser.add_argument('--limit', type=int, default=100, help='Number of records to return')
     list_parser.add_argument('--offset', type=int, default=0, help='Offset for pagination')
-    list_parser.add_argument('--filters', help='SQL filter string')
 
     # count-records
     count_parser = subparsers.add_parser('count-records', help='Count records in a dataset')
     count_parser.add_argument('dataset_name', help='Name of the dataset')
-    count_parser.add_argument('--filters', help='SQL filter string')
 
     args = parser.parse_args()
 
@@ -108,9 +106,9 @@ def main():
     elif args.command == 'get-record':
         response = get_record(args.dataset_name, args.record_id)
     elif args.command == 'list-records':
-        response = list_records(args.dataset_name, args.limit, args.offset, args.filters)
+        response = list_records(args.dataset_name, args.limit, args.offset)
     elif args.command == 'count-records':
-        response = count_records(args.dataset_name, args.filters)
+        response = count_records(args.dataset_name)
     else:
         response = json.dumps({"skill": "lance", "operation": "unknown", "status": "error", "data": None, "error": "Unknown command"})
 
