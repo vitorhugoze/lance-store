@@ -303,6 +303,6 @@ Dependencies are declared in frontmatter (`metadata.openclaw.install`) and handl
 
 - **`pylance`** — The [Lance columnar format](https://github.com/lance-format/lance) library.
 
-  ⚠️ **Naming note:** Despite the PyPI package being named `pylance`, the library is imported as `import lance` in Python code. This is the official Lance project naming convention — it is **NOT** the VS Code "pylance" language server. See [lance.org](https://lance.org) for details.
+    ⚠️ **Naming note:** Despite the PyPI package being named `pylance`, the library is imported as `import lance` in Python code. This is the official Lance project naming convention — it is **NOT** the VS Code "pylance" language server. See [lance.org](https://lance.org) for details.
 
 - **`pandas`** — Data manipulation
