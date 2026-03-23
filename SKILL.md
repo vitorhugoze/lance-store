@@ -1,8 +1,20 @@
 ---
 name: lance-store
-version: 1.0.10
-description: "Persist and retrieve structured data using the Lance columnar format. Use when you need to store, query, or analyze data across sessions — such as saving skill outputs, tracking conversation context, storing research data, or building knowledge bases. Afther installing the requirements it's ready to use. Triggers on: 'store this data', 'save to lance', 'persist information', 'remember this', 'store for later', 'query my data', 'analyze stored data', 'lance store'."
+version: 1.0.8
+description: "Persist and retrieve structured data using the Lance columnar format. Use when you need to store, query, or analyze data across sessions — such as saving skill outputs, tracking conversation context, storing research data, or building knowledge bases. After installing the requirements it's ready to use. Triggers on: 'store this data', 'save to lance', 'persist information', 'remember this', 'store for later', 'query my data', 'analyze stored data', 'lance store'."
 author: Vitor Hugo Zeferino
+metadata:
+  openclaw:
+    requires:
+      bins:
+        - python3
+    install:
+      - kind: uv
+        package: pylance
+        label: "Install pylance (Lance columnar format) via uv"
+      - kind: uv
+        package: pandas
+        label: "Install pandas via uv"
 ---
 
 # Lance Store
@@ -287,13 +299,7 @@ Lance infers types from the first record:
 
 ## Requirements
 
-Install dependencies:
-
-```bash
-python3 -m pip install -r requirements.txt
-```
-
-Required packages:
+Dependencies are declared in frontmatter (`metadata.openclaw.install`) and handled by the OpenClaw install system via `uv`. The Python packages required are:
 
 - **`pylance`** — The [Lance columnar format](https://github.com/lance-format/lance) library.
 
