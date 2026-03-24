@@ -1,7 +1,7 @@
 ---
-name: lance-store
-version: 1.0.13
-description: "Persist and retrieve structured data using the Lance columnar format. Use when you need to store, query, or analyze data across sessions — such as saving skill outputs, tracking conversation context, storing research data, or building knowledge bases. After installing the requirements it's ready to use. Triggers on: 'store this data', 'save to lance', 'persist information', 'remember this', 'store for later', 'query my data', 'analyze stored data', 'lance store'."
+name: data-vault
+version: 1.0.14
+description: "Persist and retrieve structured data using the Lance columnar format. Use when you need to store, query, or analyze data across sessions — such as saving skill outputs, tracking conversation context, storing research data, or building knowledge bases. After installing the requirements it's ready to use. Triggers on: 'store this data', 'save to persistant storage', 'persist information', 'remember this', 'store for later', 'query my data', 'analyze stored data', 'persist data'."
 author: Vitor Hugo Zeferino
 metadata:
     openclaw:
@@ -17,7 +17,7 @@ metadata:
               label: "Install pandas via uv"
 ---
 
-# Lance Store
+# Data Vault
 
 ## Installation
 
@@ -93,7 +93,7 @@ Example output:
 
 ```json
 {
-    "skill": "lance",
+    "skill": "data-vault",
     "operation": "list_datasets_info",
     "status": "success",
     "data": [
@@ -261,7 +261,7 @@ All commands return JSON:
 
 ```json
 {
-  "skill": "lance",
+  "skill": "data-vault",
   "operation": "<operation_name>",
   "status": "success|error",
   "data": <result_data_or_null>,

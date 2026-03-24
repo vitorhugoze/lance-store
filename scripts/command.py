@@ -110,7 +110,7 @@ def main():
     elif args.command == 'count-records':
         response = count_records(args.dataset_name)
     else:
-        response = json.dumps({"skill": "lance", "operation": "unknown", "status": "error", "data": None, "error": "Unknown command"})
+        response = json.dumps({"skill": "data-vault", "operation": "unknown", "status": "error", "data": None, "error": "Unknown command"})
 
     print(response)
 

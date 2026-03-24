@@ -8,7 +8,7 @@ def get_data_path():
 
 def create_response(operation, status, data=None, error=None):
     response = {
-        "skill": "lance",
+        "skill": "data-vault",
         "operation": operation,
         "status": status,
         "data": data,
