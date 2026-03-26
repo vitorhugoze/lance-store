@@ -1,6 +1,6 @@
 ---
 name: data-vault
-version: 1.0.15
+version: 1.0.17
 description: "Persist and retrieve structured data using the Lance columnar format. Use when you need to store, query, or analyze data across sessions — such as saving skill outputs, tracking conversation context, storing research data, or building knowledge bases. After installing the requirements it's ready to use. Triggers on: 'store this data', 'save to persistant storage', 'persist information', 'remember this', 'store for later', 'query my data', 'analyze stored data', 'persist data'."
 author: Vitor Hugo Zeferino
 metadata:
