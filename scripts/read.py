@@ -1,4 +1,4 @@
-import pylance as lance
+import lance
 import os
 from manage import get_dataset_path, create_response, check_dataset_exists
 

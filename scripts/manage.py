@@ -1,4 +1,4 @@
-import pylance as lance
+import lance
 import os
 import shutil
 import json
