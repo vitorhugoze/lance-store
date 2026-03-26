@@ -1,4 +1,4 @@
-import lance
+import pylance as lance
 import uuid
 from datetime import datetime
 import pandas as pd
