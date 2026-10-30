@@ -1,0 +1,129 @@
+name: CI
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    name: Lint & Static Checks
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Ruff
+        run: python -m pip install --upgrade pip "ruff>=0.6.0"
+
+      - name: Verify UTF-8 text encoding
+        run: |
+          python -c "
+          import pathlib
+          exts = {'.py', '.md', '.toml', '.txt', '.yml'}
+          for p in pathlib.Path('.').rglob('*'):
+              if '.git' in p.parts or '.venv' in p.parts:
+                  continue
+              if p.is_file() and p.suffix in exts:
+                  raw = p.read_bytes()
+                  assert not raw.startswith((b'\xff\xfe', b'\xfe\xff')), f'{p} has UTF-16 BOM'
+                  raw.decode('utf-8')
+          print('All tracked text files are valid UTF-8.')
+          "
+
+      - name: Run Ruff linter
+        run: ruff check .
+
+      - name: Compile Python modules
+        run: python -m compileall -q scripts tests
+
+  test:
+    name: Tests (${{ matrix.os }}, Python ${{ matrix.python-version }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python-version: ["3.11", "3.12"]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements-dev.txt
+
+      - name: Run pytest suite with coverage
+        run: pytest -v --cov=scripts --cov-report=term-missing
+
+      - name: Verify Bounded Task in Temporary Directory (Windows PowerShell)
+        if: runner.os == 'Windows' && matrix.python-version == '3.12'
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $TempVault = Join-Path ([System.IO.Path]::GetTempPath()) ("lance-store-ci-" + [guid]::NewGuid().ToString("N").Substring(0, 8))
+          New-Item -ItemType Directory -Path $TempVault -Force | Out-Null
+          $env:LANCE_DATA_PATH = $TempVault
+
+          try {
+            $create = python scripts/command.py create-dataset tasks title priority status | ConvertFrom-Json
+            if ($create.status -ne "success") { throw "create-dataset failed: $($create.error)" }
+
+            $batch = '[["Audit backups","high","open"],["Prune stale logs","medium","open"]]' | python scripts/command.py batch-append-to-dataset tasks - | ConvertFrom-Json
+            if ($batch.status -ne "success") { throw "batch-append failed: $($batch.error)" }
+
+            $sched = python scripts/command.py schedule-task archive-dataset tasks --run-at 2026-01-01T00:00:00Z --archive-dir archives | ConvertFrom-Json
+            if ($sched.status -ne "success") { throw "schedule-task failed: $($sched.error)" }
+
+            $runSched = python scripts/command.py run-scheduled-tasks --as-of 2026-01-01T00:05:00Z | ConvertFrom-Json
+            if ($runSched.data.succeeded_count -ne 1) { throw "run-scheduled-tasks did not succeed" }
+
+            $archives = python scripts/command.py list-archives --archive-dir archives | ConvertFrom-Json
+            $archiveId = $archives.data[0].archive_id
+            if ($archives.data[0].record_count -ne 2) { throw "Expected 2 archived records" }
+
+            $records = python scripts/command.py read-dataset tasks | ConvertFrom-Json
+            $firstId = $records.data[0]._id
+
+            $del = python scripts/command.py delete-dataset-record tasks $firstId | ConvertFrom-Json
+            if ($del.status -ne "success") { throw "delete-dataset-record failed" }
+
+            $countAfterDel = python scripts/command.py count-records tasks | ConvertFrom-Json
+            if ($countAfterDel.data -ne 1) { throw "Expected count 1 after deletion, got $($countAfterDel.data)" }
+
+            $drop = python scripts/command.py drop-dataset tasks | ConvertFrom-Json
+            if ($drop.status -ne "success") { throw "drop-dataset failed" }
+
+            $restore = python scripts/command.py restore-archive $archiveId --archive-dir archives | ConvertFrom-Json
+            if ($restore.status -ne "success" -or $restore.data.record_count -ne 2) { throw "restore-archive failed" }
+
+            $countRestored = python scripts/command.py count-records tasks | ConvertFrom-Json
+            if ($countRestored.data -ne 2) { throw "Expected 2 restored records, got $($countRestored.data)" }
+          }
+          finally {
+            Remove-Item Env:LANCE_DATA_PATH -ErrorAction SilentlyContinue
+            if (Test-Path -LiteralPath $TempVault) {
+              Remove-Item -LiteralPath $TempVault -Recurse -Force
+            }
+          }
+
+          $dirty = git status --porcelain
+          if ($dirty) {
+            throw "Repository working tree was polluted during temp-dir run: $dirty"
+          }

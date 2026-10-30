@@ -1,7 +1,7 @@
 ---
 name: data-vault
-version: 1.0.18
-description: "Persist and retrieve structured data using the Lance columnar format. Use when you need to store, query, or analyze data across sessions — such as saving skill outputs, tracking conversation context, storing research data, or building knowledge bases. After installing the requirements it's ready to use. Triggers on: 'store this data', 'save to persistant storage', 'persist information', 'remember this', 'store for later', 'query my data', 'analyze stored data', 'persist data'."
+version: 1.1.0
+description: "Persist and retrieve structured data using the Lance columnar format. Use when you need to store, query, archive, schedule maintenance, or analyze data across sessions — such as saving skill outputs, tracking conversation context, storing research data, or building knowledge bases. After installing the requirements it's ready to use. Triggers on: 'store this data', 'save to persistant storage', 'persist information', 'remember this', 'store for later', 'query my data', 'analyze stored data', 'persist data', 'archive dataset', 'schedule backup'."
 author: Vitor Hugo Zeferino
 metadata:
     openclaw:
@@ -61,11 +61,18 @@ python3 scripts/command.py append-to-dataset <name> <value1> <value2> ...
 python3 scripts/command.py read-dataset <name>
 ```
 
-**Note:** `list-datasets-info` shows dataset metadata (schema, field types, record count) — it does not return the actual data rows. Use `read-dataset` to retrieve records.
+*(On Windows inside an activated `.venv`, invoke `python` instead of `python3`. See [README.md](README.md) for the Windows Temporary-Directory Setup and Bounded Task walkthrough.)*
 
-## Storage Location
+**Note:** `list-datasets-info` shows dataset metadata (schema, field types, record count) — it does not return the actual data rows. Use `read-dataset` or `list-records` to retrieve records.
 
-DataSets are created and stored on the current path '.'
+## Storage Location & Isolation
+
+By default, datasets are created and stored in the current working directory (`.`). You can isolate storage (for example, in a temporary directory during tests or on Windows) using either:
+
+1. **Environment variable:** `LANCE_DATA_PATH=/path/to/storage` (PowerShell: `$env:LANCE_DATA_PATH = "$env:TEMP\vault"`)
+2. **Global CLI flag:** `python scripts/command.py --data-dir /path/to/storage <command> ...`
+
+Precedence: `--data-dir` > `LANCE_DATA_PATH` > `.` (current directory).
 
 ## Critical Behavior: Data Type Strictness
 
@@ -127,7 +134,7 @@ Example output:
                 "email": "large_string"
             },
             "record_count": 2,
-            "columns": ["id", "_updated_at", "name", "age", "email"],
+            "columns": ["_id", "_updated_at", "name", "age", "email"],
             "last_updated": "2026-03-21T17:57:44.595628"
         }
     ],
@@ -152,7 +159,7 @@ Example output:
 python3 scripts/command.py create-dataset <name> <field1> <field2> ...
 ```
 
-Creates a metadata entry. Fields have no types until first append.
+Creates a validated metadata entry. Fields have no types until first append.
 
 ### Append Record
 
@@ -166,6 +173,8 @@ Appends one record. Types are inferred from first record.
 
 ```bash
 python3 scripts/command.py batch-append-to-dataset <name> '<json-array>'
+# Or read JSON safely from stdin (recommended on Windows PowerShell):
+echo '<json-array>' | python3 scripts/command.py batch-append-to-dataset <name> -
 ```
 
 Example: `batch-append-to-dataset users '[["Alice", "22", "alice@test.com"], ["Bob", "35", "bob@test.com"]]'`
@@ -176,13 +185,15 @@ Example: `batch-append-to-dataset users '[["Alice", "22", "alice@test.com"], ["B
 python3 scripts/command.py update-dataset-record <name> <record_id> <value1> <value2> ...
 ```
 
-Updates fields for a specific record by ID.
+Updates fields for a specific record by ID and refreshes `_updated_at`.
 
 ### Delete Record
 
 ```bash
 python3 scripts/command.py delete-dataset-record <name> <record_id>
 ```
+
+Deletes a single record by `_id` while preserving the dataset's PyArrow schema (even when deleting the last record).
 
 ### List All Datasets
 
@@ -218,6 +229,42 @@ python3 scripts/command.py get-dataset-path-info <name>
 python3 scripts/command.py backup-dataset <name> <backup_path>
 ```
 
+Copies the dataset into a validated relative `<backup_path>/<name>` directory and writes `dataset_metadata.json` alongside it.
+
+### Archive, List & Restore Archives
+
+Create versioned, self-contained archive snapshots (including schema metadata) and optionally drop the active dataset after snapshot verification:
+
+```bash
+# Create an archive snapshot (add --drop-source for cold archiving)
+python3 scripts/command.py archive-dataset <name> [--archive-dir archives] [--drop-source]
+
+# List available archive snapshots
+python3 scripts/command.py list-archives [--archive-dir archives]
+
+# Restore an archived dataset (optionally under a new dataset name)
+python3 scripts/command.py restore-archive <archive_id_or_path> [--target-name <new_name>] [--archive-dir archives]
+```
+
+### Planned Execution (Scheduling)
+
+Schedule one-shot or recurring executions of allowlisted Data Vault operations (`backup-dataset`, `archive-dataset`, `delete-dataset-record`, `drop-dataset`) persisted in `schedules.lance`:
+
+```bash
+# Schedule a one-shot or recurring operation
+python3 scripts/command.py schedule-task <operation> <name> --run-at <ISO-8601> \
+    [--interval-seconds <seconds>] [--backup-path <rel_path>] [--archive-dir <rel_path>] [--drop-source] [--record-id <id>]
+
+# List scheduled tasks (optionally filtered by pending|completed|cancelled|error)
+python3 scripts/command.py list-scheduled-tasks [--status pending]
+
+# Execute all pending tasks due at or before now (or --as-of timestamp)
+python3 scripts/command.py run-scheduled-tasks [--as-of <ISO-8601>]
+
+# Cancel a pending scheduled task
+python3 scripts/command.py cancel-scheduled-task <schedule_id>
+```
+
 ### Count Records
 
 ```bash
@@ -234,20 +281,13 @@ python3 scripts/command.py read-dataset <name>
 
 ### Drop Dataset
 
-# Requires confirmation if have not created a backup beforehand.
+> **Tip:** Run `backup-dataset` or `archive-dataset` before dropping a dataset you may need to recover later.
 
-Delete the entire dataset and its metadata.
+Delete the entire dataset directory and remove its metadata entry.
 
 ```bash
 python3 scripts/command.py drop-dataset <name>
 ```
-
-**Internal fields available in every dataset:**
-
-| Field         | Type      | Description                                  |
-| ------------- | --------- | -------------------------------------------- |
-| `_id`         | string    | UUID — unique record identifier              |
-| `_updated_at` | timestamp | When the record was last inserted or updated |
 
 ### List Records (Paginated)
 
@@ -255,7 +295,7 @@ python3 scripts/command.py drop-dataset <name>
 python3 scripts/command.py list-records <name> --limit 10 --offset 0
 ```
 
-Returns records with optional pagination.
+Returns paginated `records` along with the full dataset `total` count.
 
 ### Get Single Record
 
@@ -265,13 +305,16 @@ python3 scripts/command.py get-record <name> <record_id>
 
 Retrieves a specific record by its UUID.
 
-### Get Dataset Info
+## Internal Fields
 
-```bash
-python3 scripts/command.py get-dataset-info <name>
-```
+Every dataset automatically includes:
 
-Returns schema, field types (if data exists), and record count.
+| Field         | Type      | Description                                  |
+| ------------- | --------- | -------------------------------------------- |
+| `_id`         | string    | UUID — unique record identifier              |
+| `_updated_at` | timestamp | When the record was last inserted or updated |
+
+These are managed automatically — when appending, only provide your defined fields.
 
 ## Response Format
 
@@ -286,15 +329,6 @@ All commands return JSON:
   "error": <error_message_or_null>
 }
 ```
-
-## Internal Fields
-
-Every dataset automatically includes:
-
-- `_id` — UUID for each record
-- `_updated_at` — timestamp of last insert/update
-
-These are managed automatically — when appending, only provide your defined fields.
 
 ## Data Type Inference
 
@@ -314,6 +348,7 @@ Lance infers types from the first record:
 1. **Initialize at session start:** Run `list-datasets-info` to understand what data already exists
 2. **Plan your schema:** First record determines types for the entire dataset
 3. **Use batch append when adding multiple records:** More efficient than individual appends
+4. **Archive before destructive operations:** Use `archive-dataset` (or `backup-dataset`) for point-in-time recovery
 
 ## Requirements
 
